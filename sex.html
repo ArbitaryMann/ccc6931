@@ -1,0 +1,204 @@
+<body>
+
+</body>
+<script>
+    getua();
+        function readMemory(memoryBuffer, address, size) {
+        const memoryView = new Uint32Array(memoryBuffer, address * 4, size);
+        console.warn(toHexString(memoryView[0]));
+        return Array.from(memoryView);
+    }
+function createMemoryAddressButton() {
+    const button = document.createElement('button');
+    button.textContent = 'Show Memory Addresses';
+    button.addEventListener('click', listMemoryAddresses);
+    document.body.appendChild(button);
+}
+function patchAllAddresses() {
+    for(let i = 0; i < 0x1000; i += 4) {
+        const addresses = readMemory(retrieveMemoryPool(), i, 4);
+        overwriteMemoryWithValues(retrieveMemoryPool(), i, addresses);
+        readMemory(retrieveMemoryPool(), i, 4);
+        console.log(i);
+    }
+}
+    
+createMemoryAddressButton();
+    function getua() {
+        var ua = navigator.userAgent;
+        console.log(ua);
+
+        const kernel = {
+            'android': ua.indexOf('Android') > -1 || ua.indexOf('Adr') > -1,
+            'ios': !!ua.match(/\(i[^;]+;( U;)? CPU.+Mac OS X/),
+            'windows': ua.indexOf('Windows') > -1,
+            'macOS':ua.indexOf('Macintosh') > -1
+        }
+
+        console.log(kernel);
+    }
+    trampoline(0x12345678, 0x12345678, 0x12345678);
+
+    function trampoline() {
+        const heap = new ArrayBuffer(0x1000);
+        const heap32 = new Uint32Array(heap);
+
+        heap32[0] = 0x12345678;
+        heap32[1] = 0x12345678;
+        heap32[2] = 0x12345678;
+
+        console.log(heap32);
+
+        heap32[0] = 0xdeadbeef;
+        heap32[1] = 0xdeadbeef;
+        heap32[2] = 0xdeadbeef;
+
+        console.log(heap32);
+
+        heap32[0] = 0x12345678;
+        heap32[1] = 0x12345678;
+        heap32[2] = 0x12345678;
+    }
+    sprayHeap(0x12345678, 0x12345678, 0x12345678);
+    function sprayHeap() {
+        const heap = new ArrayBuffer(0x1000);
+        const heap32 = new Uint32Array(heap);
+        heap32[0] = 0x12345678;
+        heap32[1] = 0x12345678;
+        heap32[2] = 0x12345678;
+        const patch = new ArrayBuffer(0x1000);
+        write32(heap,0x141414,0x12345678);
+    }
+    function write32() {
+        const heap = new ArrayBuffer(0x1000);
+        const heap32 = new Uint32Array(heap);
+        heap32[0] = 0x12345678;
+        heap32[1] = 0x12345678;
+        heap32[2] = 0x12345678;
+        memset(heap,0x141414,heap.byteLength);
+    }
+    function memset(buffer, value, size) {
+        const view = new Uint8Array(buffer);
+        for (let i = 0; i < size; i++) {
+            view[i] = value;
+        }
+    }
+
+    const heap = new ArrayBuffer(0x1000);
+
+        const heap32 = new Uint32Array(heap);
+        heap32[0] = 0x12345678;
+        heap32[1] = 0x12345678;
+        heap32[2] = 0x12345678;
+        console.log(heap32);
+    memset(heap,0x141414,heap.byteLength);
+    console.log(heap32);
+    console.warn('patched heap32[0] to 0x12345678');
+    function magic() {
+        const ropChain = constructRopChain();
+
+    }
+function constructRopChainBuffer() {
+    const ropBuffer = new ArrayBuffer(0x1000);
+    const ropChainView = new Uint32Array(ropBuffer);
+    ropChainView[0] = 0x12345678;
+    ropChainView[1] = 0x12345678;
+    ropChainView[2] = 0x12345678;
+   
+    return ropBuffer;
+}
+function retrieveMemoryPool() {
+    const memoryPool = new ArrayBuffer(0x1000);
+    const memoryPool32 = new Uint32Array(memoryPool);
+    return memoryPool;
+}
+function valueToHexString(value) {
+    return value.toString(16).padStart(8, '0');
+}
+function listMemoryAddresses() {
+    const memoryPool = retrieveMemoryPool();
+    if (!memoryPool) {
+        console.error('Memory pool is null');
+        return;
+    }
+
+    const memoryPoolView = new Uint32Array(memoryPool);
+    if (!memoryPoolView) {
+        console.error('Memory pool view is null');
+        return;
+    }
+
+    for (let i = 0; i < memoryPoolView.length; i += 4) {
+        const startAddress = i * 4;
+        const endAddress = (i + 4) * 4;
+
+        const hexStart = startAddress.toString(16).padStart(8, '0');
+        const hexEnd = endAddress.toString(16).padStart(8, '0');
+
+        const addresses = memoryPoolView.slice(i, i + 4);
+        if (!addresses) {
+            console.error(`Error while slicing memory pool at index ${i}`);
+            continue;
+        }
+
+        const addressesHTML = addresses.map(address => {
+            if (address === undefined) {
+                console.error(`Error while converting address ${i + addresses.indexOf(address)}`);
+                return `<p>0xERROR</p>`;
+            }
+            try {
+                return `<p>0x${address.toString(16).padStart(8, '0')}</p>`;
+            } catch (error) {
+                console.error(`Error while converting address ${i + addresses.indexOf(address)}:`, error);
+                return `<p>0xERROR</p>`;
+            }
+        }).join('');
+
+        const instructions = [
+            'pop rdx',
+            'pop rax',
+            'pop rcx',
+            'pop r8',
+            'pop r9',
+            'pop r10',
+            'pop r11',
+            'pop r12',
+            'pop r13',
+            'pop r14',
+            'pop r15',
+            'pop rdi'
+        ];
+
+        try {
+            overwriteMemoryWithValues(memoryPool, i, instructions.concat(addresses));
+        } catch (error) {
+            console.error(`Error while overwriting memory at index ${i}:`, error);
+        }
+
+        for (let j = 0; j < addresses.length; j++) {
+            console.warn(`before overwrite: 0x${startAddress.toString(16).padStart(8, '0')}`);
+            if(startAddress.toString(16).padStart(8, '0') === '0x00000010'){
+                console.warn(`0x${startAddress.toString(16).padStart(8, '0')} == 0x00000010 hit`);
+            }
+            try {
+                const newValue = addresses[j] + 0x14141414;
+                memoryPoolView[i + j] = newValue;
+                console.warn(`after overwrite: 0x${(startAddress + j).toString(16).padStart(8, '0')}`);
+                console.warn(valueToHexString(newValue));
+            } catch (error) {
+                console.error(`Error while modifying memory at index ${i + j}:`, error);
+            }
+        }
+    }
+}
+    function overwriteMemoryWithValues(buffer, startIndex, values) {
+        const endIndex = startIndex + values.length;
+        const memoryView = new Uint32Array(buffer, startIndex * 4, values.length);
+        values.forEach((value, index) => {
+            memoryView[index] = value;
+       
+        });
+    }
+
+console.log(retrieveMemoryPool());
+</script>
